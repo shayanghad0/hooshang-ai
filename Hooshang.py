@@ -126,6 +126,24 @@ class HooshangDashboard(QWidget):
 
         self.setLayout(self.main_layout)
 
+    # ========== Mouse events for window dragging ==========
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.is_dragging = True
+            self.start_pos = event.globalPos() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if self.is_dragging:
+            self.move(event.globalPos() - self.start_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.is_dragging = False
+            event.accept()
+    # =====================================================
+
     def apply_dark_theme(self):
         self.setStyleSheet("""
             QWidget { background-color: #1a1a2e; color: #e0e0e0; }
