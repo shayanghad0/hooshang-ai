@@ -1,4 +1,6 @@
 import sys
+import os
+import requests
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QLabel, QVBoxLayout,
@@ -6,6 +8,7 @@ from PyQt5.QtWidgets import (
     QScrollArea, QGridLayout
 )
 from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtGui import QFontDatabase, QFont
 
 class HooshangDashboard(QWidget):
     def __init__(self):
@@ -14,11 +17,40 @@ class HooshangDashboard(QWidget):
         self.setGeometry(150, 150, 600, 600)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
+        self.load_font()          # بارگذاری فونت وزیر
         self.init_ui()
         self.apply_dark_theme()
 
         self.is_dragging = False
         self.start_pos = QPoint(0, 0)
+
+    def load_font(self):
+        """دانلود و ثبت فونت وزیرمتن (در صورت نیاز)"""
+        font_filename = "Vazirmatn-FD-NL-Regular.ttf"
+        font_path = os.path.join(os.path.dirname(__file__), font_filename)
+
+        if not os.path.exists(font_path):
+            # لینک مستقیم فایل فونت از همان CDN
+            url = "https://lib.arvancloud.ir/vazir-font/33.003/Farsi-Digits-Non-Latin/Vazirmatn-FD-NL-Regular.ttf"
+            try:
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                with open(font_path, 'wb') as f:
+                    f.write(response.content)
+            except Exception as e:
+                print(f"خطا در دانلود فونت: {e}")
+                return
+
+        # ثبت فونت در برنامه
+        font_id = QFontDatabase.addApplicationFont(font_path)
+        if font_id == -1:
+            print("ثبت فونت با خطا مواجه شد")
+        else:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            if font_families:
+                self.font_family = font_families[0]  # معمولاً 'Vazirmatn FD NL'
+            else:
+                self.font_family = "Vazirmatn FD NL"
 
     def init_ui(self):
         self.main_layout = QVBoxLayout()
@@ -145,73 +177,101 @@ class HooshangDashboard(QWidget):
     # =====================================================
 
     def apply_dark_theme(self):
-        self.setStyleSheet("""
-            QWidget { background-color: #1a1a2e; color: #e0e0e0; }
-            QLineEdit {
-                background-color: #16213e; border: 2px solid #0f3460;
-                color: #fff; padding: 8px; border-radius: 12px;
-                font-size: 14px;
-            }
-            QTextEdit {
-                background-color: #16213e; border: 2px solid #0f3460;
-                color: #fff; padding: 10px; border-radius: 12px;
-                font-size: 14px;
-            }
-            QPushButton {
-                background-color: #0f3460; color: white;
-                border-radius: 12px; padding: 10px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
+        self.setStyleSheet(f"""
+            QWidget {{
+                background-color: #1a1a2e;
+                color: #e0e0e0;
+                font-family: '{getattr(self, "font_family", "sans-serif")}';
+            }}
+            QLineEdit {{
                 background-color: #16213e;
-            }
-            QRadioButton {
-                color: #e0e0e0; padding: 8px;
+                border: 2px solid #0f3460;
+                color: #fff;
+                padding: 8px;
+                border-radius: 12px;
                 font-size: 14px;
-            }
-            QRadioButton::indicator {
-                width: 15px; height: 15px;
-            }
-            QRadioButton::indicator:checked {
+            }}
+            QTextEdit {{
+                background-color: #16213e;
+                border: 2px solid #0f3460;
+                color: #fff;
+                padding: 10px;
+                border-radius: 12px;
+                font-size: 14px;
+            }}
+            QPushButton {{
+                background-color: #0f3460;
+                color: white;
+                border-radius: 12px;
+                padding: 10px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: #16213e;
+            }}
+            QRadioButton {{
+                color: #e0e0e0;
+                padding: 8px;
+                font-size: 14px;
+            }}
+            QRadioButton::indicator {{
+                width: 15px;
+                height: 15px;
+            }}
+            QRadioButton::indicator:checked {{
                 background-color: #0f3460;
                 border: 2px solid #e0e0e0;
                 border-radius: 7px;
-            }
+            }}
         """)
 
     def apply_light_theme(self):
-        self.setStyleSheet("""
-            QWidget { background-color: #f0f2f5; color: #2d3436; }
-            QLineEdit {
-                background-color: white; border: 2px solid #dfe6e9;
-                color: #2d3436; padding: 8px; border-radius: 12px;
+        self.setStyleSheet(f"""
+            QWidget {{
+                background-color: #f0f2f5;
+                color: #2d3436;
+                font-family: '{getattr(self, "font_family", "sans-serif")}';
+            }}
+            QLineEdit {{
+                background-color: white;
+                border: 2px solid #dfe6e9;
+                color: #2d3436;
+                padding: 8px;
+                border-radius: 12px;
                 font-size: 14px;
-            }
-            QTextEdit {
-                background-color: white; border: 2px solid #dfe6e9;
-                color: #2d3436; padding: 10px; border-radius: 12px;
+            }}
+            QTextEdit {{
+                background-color: white;
+                border: 2px solid #dfe6e9;
+                color: #2d3436;
+                padding: 10px;
+                border-radius: 12px;
                 font-size: 14px;
-            }
-            QPushButton {
-                background-color: #6c5ce7; color: white;
-                border-radius: 12px; padding: 10px;
+            }}
+            QPushButton {{
+                background-color: #6c5ce7;
+                color: white;
+                border-radius: 12px;
+                padding: 10px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background-color: #5f48e5;
-            }
-            QRadioButton {
-                color: #2d3436; padding: 8px;
+            }}
+            QRadioButton {{
+                color: #2d3436;
+                padding: 8px;
                 font-size: 14px;
-            }
-            QRadioButton::indicator {
-                width: 15px; height: 15px;
-            }
-            QRadioButton::indicator:checked {
+            }}
+            QRadioButton::indicator {{
+                width: 15px;
+                height: 15px;
+            }}
+            QRadioButton::indicator:checked {{
                 background-color: #6c5ce7;
                 border: 2px solid #2d3436;
                 border-radius: 7px;
-            }
+            }}
         """)
 
     def generate_study_plan(self):
@@ -253,7 +313,6 @@ class HooshangDashboard(QWidget):
                 total_used += break_time
 
         plan += f"\n🔚 مجموع زمان (با استراحت): {total_used:.2f} ساعت\n"
-
         plan += "\n📚 نکات:\n"
         plan += "- محیط آرام برای مطالعه انتخاب کن.\n"
         plan += "- از تایمر استفاده کن (مثل تکنیک پومودورو).\n"
